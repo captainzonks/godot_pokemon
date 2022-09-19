@@ -110,14 +110,14 @@ func move(delta):
 	if ledge_ray.is_colliding() and input_direction == Vector2(0, 1) or jumping_over_ledge:
 		percent_moved_to_next_tile += jump_speed + delta
 		if percent_moved_to_next_tile >= 2.0:
-			position = initial_position + input_direction * TILE_SIZE * 3
+			position = initial_position + input_direction * TILE_SIZE * 2
 			percent_moved_to_next_tile = 0.0
 			is_moving = false
 			jumping_over_ledge = false
 		else:
 			jumping_over_ledge = true
 			var input = input_direction.y * TILE_SIZE * percent_moved_to_next_tile
-			position.y = initial_position.y + (-0.8 - 0.53 * input + 0.05 * pow(input, 2))
+			position.y = initial_position.y + (-0.93 - 0.53 * input + 0.05 * pow(input, 2))
 	elif !ray.is_colliding():
 		if percent_moved_to_next_tile == 0.0:
 			emit_signal("player_moving_signal")
