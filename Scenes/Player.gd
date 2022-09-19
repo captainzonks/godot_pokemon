@@ -1,5 +1,10 @@
 extends KinematicBody2D
 
+var tall_grass = preload("res://Scenes/TallGrass.tscn")
+
+signal player_moving_signal
+signal player_stopped_signal
+
 export var walk_speed = 0.03
 const TILE_SIZE = 16
 
@@ -95,7 +100,11 @@ func move(delta):
 	ray.cast_to = desired_step
 	ray.force_raycast_update()
 	if !ray.is_colliding():
+		if percent_moved_to_next_tile == 0.0:
+			emit_signal("player_moving_signal")
 		percent_moved_to_next_tile += walk_speed + delta
+		if percent_moved_to_next_tile >= 0.1:
+			emit_signal("player_stopped_signal")
 		if percent_moved_to_next_tile >= 1.0:
 			position = initial_position + TILE_SIZE * input_direction
 			percent_moved_to_next_tile = 0.0
@@ -105,9 +114,6 @@ func move(delta):
 	else:
 		percent_moved_to_next_tile = 0.0
 		is_moving = false
+		
 
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
