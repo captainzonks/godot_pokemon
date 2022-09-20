@@ -13,6 +13,7 @@ onready var anim_tree = $AnimationTree
 onready var anim_state = anim_tree.get("parameters/playback")
 onready var ray = $BlockingRayCast2D
 onready var ledge_ray = $LedgeRayCast2D
+onready var shadow = $Shadow
 
 var jumping_over_ledge: bool = false
 
@@ -20,6 +21,8 @@ var initial_position = Vector2(0,0)
 var input_direction = Vector2(0,0)
 var is_moving = false
 var percent_moved_to_next_tile = 0.0
+
+var timer: Timer
 
 enum PlayerState {
 	IDLE,
@@ -41,6 +44,7 @@ var facing_direction = FacingDirection.DOWN
 func _ready():
 	anim_tree.active = true
 	initial_position = position
+	shadow.visible = false
 
 
 func _physics_process(delta):
@@ -103,10 +107,10 @@ func move(delta):
 	var desired_step: Vector2 = input_direction * TILE_SIZE / 2
 	ray.cast_to = desired_step
 	ray.force_raycast_update()
-	
+
 	ledge_ray.cast_to = desired_step
 	ledge_ray.force_raycast_update()
-	
+
 	if ledge_ray.is_colliding() and input_direction == Vector2(0, 1) or jumping_over_ledge:
 		percent_moved_to_next_tile += jump_speed + delta
 		if percent_moved_to_next_tile >= 2.0:
@@ -114,10 +118,21 @@ func move(delta):
 			percent_moved_to_next_tile = 0.0
 			is_moving = false
 			jumping_over_ledge = false
+			shadow.visible = false
 		else:
+			shadow.visible = true
 			jumping_over_ledge = true
 			var input = input_direction.y * TILE_SIZE * percent_moved_to_next_tile
-			position.y = initial_position.y + (-0.93 - 0.53 * input + 0.05 * pow(input, 2))
+
+			if !timer and percent_moved_to_next_tile <= 1:
+				timer = Timer.new()
+				timer.connect("timeout",self,"jump_ledge_animation")
+				timer.wait_time = 0.1
+				timer.one_shot = true
+				add_child(timer)
+				timer.start()
+
+			position.y = initial_position.y + input
 	elif !ray.is_colliding():
 		if percent_moved_to_next_tile == 0.0:
 			emit_signal("player_moving_signal")
@@ -133,6 +148,13 @@ func move(delta):
 	else:
 		percent_moved_to_next_tile = 0.0
 		is_moving = false
-		
 
+func jump_ledge_animation():
+	var tween := create_tween().set_trans(Tween.TRANS_LINEAR)
+	tween.connect("finished", self, "jump_ledge_completed")
+	tween.tween_property($Character, "offset", Vector2(0, -14), 0.1)
 
+func jump_ledge_completed():
+	var tween := create_tween().set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property($Character, "offset", Vector2(0, -6), 0.2)
+	timer = null
