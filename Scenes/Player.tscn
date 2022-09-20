@@ -484,6 +484,7 @@ start_node = "Idle"
 [sub_resource type="AnimationNodeStateMachinePlayback" id=12]
 
 [node name="Player" type="KinematicBody2D"]
+collision_mask = 6
 script = ExtResource( 2 )
 
 [node name="Character" type="Sprite" parent="."]
@@ -522,10 +523,18 @@ parameters/Walk/blend_position = Vector2( 0, 0 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 current = true
+smoothing_enabled = true
+smoothing_speed = 10.0
 
-[node name="RayCast2D" type="RayCast2D" parent="."]
+[node name="BlockingRayCast2D" type="RayCast2D" parent="."]
 position = Vector2( 8, 8 )
 cast_to = Vector2( 0, 16 )
+collision_mask = 6
+
+[node name="LedgeRayCast2D" type="RayCast2D" parent="."]
+position = Vector2( 8, 8 )
+cast_to = Vector2( 0, 16 )
+collision_mask = 4
 
 [node name="Grass" type="Sprite" parent="."]
 visible = false
