@@ -4,6 +4,8 @@ var tall_grass = preload("res://Scenes/TallGrass.tscn")
 
 signal player_moving_signal
 signal player_stopped_signal
+signal player_entering_door_signal
+signal player_entered_door_signal
 
 export var walk_speed = 0.03
 export var jump_speed = 0.03
@@ -14,12 +16,14 @@ onready var anim_state = anim_tree.get("parameters/playback")
 onready var ray = $BlockingRayCast2D
 onready var ledge_ray = $LedgeRayCast2D
 onready var shadow = $Shadow
+onready var door_ray = $DoorRayCast2D
 
 var jumping_over_ledge: bool = false
 
 var initial_position = Vector2(0,0)
 var input_direction = Vector2(0,0)
 var is_moving = false
+var stop_input = false
 var percent_moved_to_next_tile = 0.0
 
 var timer: Timer
@@ -48,7 +52,7 @@ func _ready():
 
 
 func _physics_process(delta):
-	if player_state == PlayerState.TURNING:
+	if player_state == PlayerState.TURNING or stop_input:
 		return
 	elif is_moving == false:
 		process_player_input()
@@ -110,8 +114,25 @@ func move(delta):
 
 	ledge_ray.cast_to = desired_step
 	ledge_ray.force_raycast_update()
+	
+	door_ray.cast_to = desired_step
+	door_ray.force_raycast_update()
+	
+	if door_ray.is_colliding():
+		if percent_moved_to_next_tile == 0.0:
+			emit_signal("player_entering_door_signal")
+		percent_moved_to_next_tile += walk_speed + delta
+		if percent_moved_to_next_tile >= 1.0:
+			position = initial_position + input_direction * TILE_SIZE
+			percent_moved_to_next_tile = 0.0
+			is_moving = false
+			stop_input = true
+			$AnimationPlayer.play("Door")
+			$Camera2D.clear_current()
+		else:
+			position = initial_position + TILE_SIZE * input_direction * percent_moved_to_next_tile
 
-	if ledge_ray.is_colliding() and input_direction == Vector2(0, 1) or jumping_over_ledge:
+	elif ledge_ray.is_colliding() and input_direction == Vector2(0, 1) or jumping_over_ledge:
 		percent_moved_to_next_tile += jump_speed + delta
 		if percent_moved_to_next_tile >= 2.0:
 			position = initial_position + input_direction * TILE_SIZE * 2
@@ -158,3 +179,7 @@ func jump_ledge_completed():
 	var tween := create_tween().set_trans(Tween.TRANS_LINEAR)
 	tween.tween_property($Character, "offset", Vector2(0, -6), 0.2)
 	timer = null
+	
+func entered_door():
+	print("emitting door signal")
+	emit_signal("player_entered_door_signal")

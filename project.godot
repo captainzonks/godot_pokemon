@@ -11,7 +11,7 @@ config_version=4
 [application]
 
 config/name="Pokemon"
-run/main_scene="res://Scenes/Overworld.tscn"
+run/main_scene="res://Scenes/SceneManager.tscn"
 config/icon="res://icon.png"
 
 [display]
@@ -36,6 +36,7 @@ common/drop_mouse_on_gui_input_disabled=true
 2d_physics/layer_1="Player"
 2d_physics/layer_2="World"
 2d_physics/layer_3="Ledge"
+2d_physics/layer_4="Door"
 
 [physics]
 
