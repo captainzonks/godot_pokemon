@@ -1,4 +1,4 @@
-extends KinematicBody2D
+extends "res://Scripts/Actor.gd"
 
 var tall_grass = preload("res://Scenes/TallGrass.tscn")
 
@@ -13,7 +13,6 @@ const TILE_SIZE = 16
 
 onready var anim_tree = $AnimationTree
 onready var anim_state = anim_tree.get("parameters/playback")
-onready var ray = $BlockingRayCast2D
 onready var ledge_ray = $LedgeRayCast2D
 onready var shadow = $Shadow
 onready var door_ray = $DoorRayCast2D
@@ -109,8 +108,8 @@ func need_to_turn():
 
 func move(delta):
 	var desired_step: Vector2 = input_direction * TILE_SIZE / 2
-	ray.cast_to = desired_step
-	ray.force_raycast_update()
+	blocking_ray.cast_to = desired_step
+	blocking_ray.force_raycast_update()
 
 	ledge_ray.cast_to = desired_step
 	ledge_ray.force_raycast_update()
@@ -154,7 +153,7 @@ func move(delta):
 				timer.start()
 
 			position.y = initial_position.y + input
-	elif !ray.is_colliding():
+	elif !blocking_ray.is_colliding():
 		if percent_moved_to_next_tile == 0.0:
 			emit_signal("player_moving_signal")
 		percent_moved_to_next_tile += walk_speed + delta
